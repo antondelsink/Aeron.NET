@@ -64,12 +64,27 @@ namespace Adaptive.Aeron.Tests
         [Test]
         public void ShouldAssembleTwoPartMessage()
         {
+            var srcBuffer = new UnsafeBuffer(new byte[1024]);
+
+            ShouldAssembleTwoPartMessage(srcBuffer);
+        }
+
+        [Test]
+        [Category("ExpandableArrayBuffer")]
+        public void ShouldAssembleTwoPartMessage_ExpandableArrayBuffer()
+        {
+            var srcBuffer = new ExpandableArrayBuffer(1024);
+
+            ShouldAssembleTwoPartMessage(srcBuffer);
+        }
+
+        private void ShouldAssembleTwoPartMessage(IMutableDirectBuffer srcBuffer)
+        {
             A.CallTo(() => header.Flags).ReturnsNextFromSequence(FrameDescriptor.BEGIN_FRAG_FLAG, FrameDescriptor.END_FRAG_FLAG, FrameDescriptor.END_FRAG_FLAG);
             // Need to add this twice because FakeItEasy doesn't fall back to the implementation
 
-            var srcBuffer = new UnsafeBuffer(new byte[1024]);
             const int offset = 0;
-            var length = srcBuffer.Capacity/2;
+            var length = srcBuffer.Capacity / 2;
 
             srcBuffer.SetMemory(0, length, 65);
             srcBuffer.SetMemory(length, length, 66);
@@ -94,7 +109,7 @@ namespace Adaptive.Aeron.Tests
             A.CallTo(() => delegateFragmentHandler.OnFragment(
                 A<UnsafeBuffer>.That.Matches(bufferAssertion, "buffer"),
                 offset,
-                length*2,
+                length * 2,
                 A<Header>.That.Matches(headerAssertion, "header")))
                 .MustHaveHappened(1, Times.Exactly);
         }
@@ -102,21 +117,35 @@ namespace Adaptive.Aeron.Tests
         [Test]
         public void ShouldAssembleFourPartMessage()
         {
+            var srcBuffer = new UnsafeBuffer(new byte[1024]);
+
+            ShouldAssembleFourPartMessage(srcBuffer);
+        }
+        [Test]
+        [Category("ExpandableArrayBuffer")]
+        public void ShouldAssembleFourPartMessage_ExpandableArrayBuffer()
+        {
+            var srcBuffer = new ExpandableArrayBuffer(1024);
+
+            ShouldAssembleFourPartMessage(srcBuffer);
+        }
+
+        private void ShouldAssembleFourPartMessage(IMutableDirectBuffer srcBuffer)
+        {
             A.CallTo(() => header.Flags).ReturnsNextFromSequence<byte>(FrameDescriptor.BEGIN_FRAG_FLAG, 0, 0, FrameDescriptor.END_FRAG_FLAG, FrameDescriptor.END_FRAG_FLAG);
 
-            var srcBuffer = new UnsafeBuffer(new byte[1024]);
             const int offset = 0;
-            var length = srcBuffer.Capacity/4;
+            var length = srcBuffer.Capacity / 4;
 
             for (var i = 0; i < 4; i++)
             {
-                srcBuffer.SetMemory(i*length, length, (byte) (65 + i));
+                srcBuffer.SetMemory(i * length, length, (byte)(65 + i));
             }
 
             adapter.OnFragment(srcBuffer, offset, length, header);
             adapter.OnFragment(srcBuffer, offset + length, length, header);
-            adapter.OnFragment(srcBuffer, offset + (length*2), length, header);
-            adapter.OnFragment(srcBuffer, offset + (length*3), length, header);
+            adapter.OnFragment(srcBuffer, offset + (length * 2), length, header);
+            adapter.OnFragment(srcBuffer, offset + (length * 3), length, header);
 
 
             Func<UnsafeBuffer, bool> bufferAssertion = capturedBuffer =>
@@ -137,7 +166,7 @@ namespace Adaptive.Aeron.Tests
             A.CallTo(() => delegateFragmentHandler.OnFragment(
                 A<UnsafeBuffer>.That.Matches(bufferAssertion, "buffer"),
                 offset,
-                length*4,
+                length * 4,
                 A<Header>.That.Matches(headerAssertion, "header")))
                 .MustHaveHappened(1, Times.Exactly);
         }

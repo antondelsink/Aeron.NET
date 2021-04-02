@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Adaptive.Agrona.Util
@@ -94,6 +95,18 @@ namespace Adaptive.Agrona.Util
         public static void ThrowObjectDisposedException(string objectName)
         {
             throw GetObjectDisposedException(objectName);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void ThrowInvalidEnumArgumentException(string argumentName, int invalidValue, Type enumType)
+        {
+            throw GetInvalidEnumArgumentException(argumentName, invalidValue, enumType);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Exception GetInvalidEnumArgumentException(string argumentName, int invalidValue, Type enumType)
+        {
+            return new InvalidEnumArgumentException(argumentName, invalidValue, enumType);
         }
 
         /////////////////////////////////////////////////////////////////////////////
